@@ -18,6 +18,7 @@ const log = (...a) => console.log(new Date().toISOString(), ...a);
 function connect(msLeft) {
   return new Promise((resolve) => {
     let finished = false;
+    let joinTimer;
     const timers = [];
     const bot = mineflayer.createBot({
       host: HOST, port: PORT, username: USERNAME, version: VERSION, auth: AUTH, hideErrors: true,
@@ -47,6 +48,7 @@ function connect(msLeft) {
       resolve(why);
     };
     bot.once("spawn", () => {
+      clearTimeout(joinTimer); // joined fine, cancel the join timeout
       log("Joined", HOST, "as", USERNAME);
       // fallback if the server sends no prompt: try login first (register is answered by the prompt handler)
       timers.push(setTimeout(() => { if (authTries === 0) doAuth("login"); }, 5000));
@@ -62,7 +64,8 @@ function connect(msLeft) {
     bot.on("kicked", (r) => { log("Kicked:", typeof r === "string" ? r : JSON.stringify(r)); end("kicked"); });
     bot.on("error", (e) => { log("Error:", e.message); end("error"); });
     bot.on("end", () => end("ended"));
-    timers.push(setTimeout(() => end("join-timeout"), 90000)); // never got in
+    joinTimer = setTimeout(() => end("join-timeout"), 90000); // never got in
+    timers.push(joinTimer);
   });
 }
 
