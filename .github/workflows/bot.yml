@@ -1,0 +1,34 @@
+name: bot
+on:
+  workflow_dispatch:
+concurrency:
+  group: bot
+  cancel-in-progress: false
+permissions:
+  actions: write
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: node bot.js
+        env:
+          ONCE: "1"
+          SESSION_HOURS: "5"
+          MC_HOST: ${{ vars.MC_HOST || 'lunahack.aternos.me' }}
+          MC_USERNAME: ${{ vars.MC_USERNAME || 'ceyobot' }}
+          MC_PASSWORD: ${{ secrets.MC_PASSWORD }}
+          MC_VERSION: ${{ vars.MC_VERSION || '1.21.4' }}
+      - name: Wait 10-20s then start the next round
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sleep $((10 + RANDOM % 11))
+          gh workflow run bot.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"

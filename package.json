@@ -1,0 +1,7 @@
+{
+  "name": "sunucu-bot",
+  "version": "1.0.0",
+  "private": true,
+  "main": "bot.js",
+  "dependencies": { "mineflayer": "^4.23.0" }
+}
